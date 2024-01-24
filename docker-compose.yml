@@ -1,0 +1,46 @@
+version: "3.7"
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: datawarehouse
+      MYSQL_USER: sqlroot
+      MYSQL_PASSWRD: hunter2
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - 3310:3306
+    volumes:
+      - "./database:/var/lib/mysql"
+    networks:
+      - lamp-docker
+    restart: always
+  www:
+    depends_on:
+      - db
+    build:
+      dockerfile: php.Dockerfile
+      context: .
+    restart: always
+    volumes:
+      - "./www:/var/www/html"
+    ports:
+      - 8000:80
+      - 443:443
+    networks:
+      - lamp-docker
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8001:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    networks:
+      - lamp-docker
+    restart: always
+networks:
+  lamp-docker:
+    driver: bridge
